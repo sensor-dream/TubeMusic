@@ -1,0 +1,12 @@
+RemoveHandler .htm .htmls .hta
+AddType application/x-httpd-php .php
+AddType text/html .tml
+AddType text/cache-manifest .manifest
+
+
+DirectoryIndex index.php index.html
+
+Options -Indexes
+Options -ExecCGI
+
+AddDefaultCharset UTF-8

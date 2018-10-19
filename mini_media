@@ -1,0 +1,30 @@
+#!/bin/bash
+
+if [ ! -d ./music-$1 ]
+then 
+    mkdir ./music-$1
+fi
+
+#for link in $(cat  *.link)
+cat *.link | while read link
+do
+	if [ "${link:0:1}" != "#" ]
+	then
+
+		trap "mv *.$1 ./music-$1 2>/dev/null; rm -f *.part 2>/dev/null; rm -f *.webm 2>/dev/null; exit 1" 2
+		
+		# youtube-dl  --restrict-filenames --ignore-errors \
+		#	--sleep-interval 2 --download-archive download_list.txt \
+		#	-xci -o "%(title)s.%(ext)s"  --audio-format $1 $link	
+
+		youtube-dl  --ignore-errors \
+			--sleep-interval 2 --download-archive download_list.txt \
+			-xci -o "%(title)s.%(ext)s"  --audio-format $1 $link	
+
+		mv *.$1  ./music-$1 2>/dev/null
+		rm -f *.part 2>/dev/null
+		rm -f *.webm 2>/dev/null
+	fi
+done
+
+exit 0

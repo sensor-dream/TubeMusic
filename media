@@ -1,0 +1,155 @@
+#!/bin/bash
+
+declare -a ACTIONS;
+
+EXIT_SUCCESS=0
+
+DEF_FORMAT_EXT="mp3"
+PLAYLIST_EXT="txt"
+
+getMedia () {
+
+  if [ -z $1 ] 
+  then
+    FORMAT_EXT=$DEF_FORMAT_EXT
+  else
+    FORMAT_EXT=$1
+  fi
+
+  echo  "***** start download tubemusic - $FORMAT_EXT ******"
+  sleep 2
+  echo  `date +%Y-%m-%d:%H:%M:%S`
+  if [ ! -d $FORMAT_EXT ]
+  then 
+    mkdir ./$FORMAT_EXT
+  fi
+
+  getFile () {
+
+    youtube-dl  --ignore-errors  -xcio "%(title)s.%(ext)s"  --audio-format $2  $1
+
+    if [ "$2" == "vorbis" ]
+    then
+      if [ -f *.ogg ]
+        then
+          mv *.'ogg' ./$3
+        fi
+    else
+      if [ -f *.ogg ]
+        then
+          mv *.$2 ./$3
+        fi
+    fi
+
+    sleep 2
+    return 1
+  }
+
+  
+
+  if [ -z $2 ]
+  then
+    for link in $(cat  *.$PLAYLIST_EXT)
+    do  
+      getFile $link $FORMAT_EXT $FORMAT_EXT
+    done
+  else
+    getFile $2 $FORMAT_EXT $FORMAT_EXT
+  fi
+  
+  echo "***** stop download tubemusic - $FORMAT_EXT ******"
+
+  if [ -f *.part ]
+  then
+    rm *.part
+  fi
+
+  return 1
+}
+
+
+_actions () {
+
+  ACTIONS=(
+    Format-Flac
+    Format-mp3
+    Format-m4a
+    Format-vorbis
+    Format-wav
+    Default
+    Exit
+  );
+
+  PS3="Выберите действие: "
+
+  select answer in ${ACTIONS[*]}
+  do
+          case $answer in
+          ${ACTIONS[0]} )
+                  getMedia 'flac' $2
+                  break ;;
+          ${ACTIONS[1]} )
+                  getMedia 'mp3' $2
+                  break ;;
+          ${ACTIONS[2]} )
+                  getMedia 'm4a' $2
+                  break ;;
+          ${ACTIONS[3]} )
+                  getMedia 'vorbis' $2
+                  break ;;
+          ${ACTIONS[4]} )
+                  getMedia 'wav' $2
+                  break ;;
+          ${ACTIONS[5]} )
+                  getMedia $DEF_FORMAT_EXT $2
+                  break ;;
+          ${ACTIONS[6]} )
+                  echo "Exit ..."
+                  break ;;
+          * )
+                  echo
+                  echo "O\`PS not selcted" ;;
+          esac
+  done
+
+
+}
+
+
+if [ -z $1 ]
+then 
+
+  _actions
+
+else
+  case $1 in
+    'flac' )
+      getMedia 'flac' $2
+      break ;;
+    'mp3' )
+      getMedia 'mp3' $2
+      break ;;
+    'm4a' )
+      getMedia 'm4a' $2
+      break ;;
+    'vorbis' )
+      getMedia 'vorbis' $2
+      break ;;
+    'wav' )
+      getMedia 'wav' $2
+      break ;;
+    'm' )
+        _actions $1 $2
+      break ;;
+    * )
+      if [ test $(echo $1 | grep -iq "http") ]
+      then
+        getMedia $DEF_FORMAT_EXT $1
+      else
+        getMedia $DEF_FORMAT_EXT
+      fi
+      ;;
+  esac
+fi
+
+exit $EXIT_SUCCESS
